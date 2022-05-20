@@ -1,0 +1,61 @@
+name: release_memcached_sniffer
+
+on:
+  release:
+    types: [edited, created]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+		permissions:
+			issues: write
+			pull-requests: write
+			contents: write 
+    runs-on: ubuntu-latest
+    container:
+      image: alpine:3.9
+
+    steps:
+    - name: Get dependencies
+      run:  apk add --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/v3.9/community git curl musl-dev alpine-sdk cmake libpcap-dev clang zlib-dev curl-dev
+
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        submodules: recursive
+
+    - name: Create build directory 
+      run: mkdir build 
+
+    - name: Build prometheus
+      run: |
+        cd deps/prometheus-cpp/
+        mkdir _build
+        cd _build
+        cmake .. -DBUILD_SHARED_LIBS=OFF
+        make -j
+        mkdir -p deploy
+        make DESTDIR=$(pwd)/deploy install
+        cd ../../..
+
+    - name: Build
+      run: |
+        cd build
+        cmake ../ -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DBUILD_STATIC_BINARY=ON
+        touch ../CMakeLists.txt ; make -j VERBOSE=1
+        strip --strip-unneeded -s -R .comment -R .gnu.version memcache_sniffer
+        tar -czvf ../memcache_sniffer.tar.gz memcache_sniffer
+
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: memcache_sniffer.tar.gz
+        #run: |
+        #ls -al
+        #echo $(pwd)
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

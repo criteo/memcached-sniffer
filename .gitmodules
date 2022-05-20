@@ -1,0 +1,15 @@
+[submodule "deps/fmt"]
+	path = deps/fmt
+	url = https://github.com/fmtlib/fmt.git
+[submodule "deps/spdlog"]
+	path = deps/spdlog
+	url = https://github.com/gabime/spdlog.git
+[submodule "deps/clipp"]
+	path = deps/clipp
+	url = https://github.com/muellan/clipp.git
+[submodule "deps/prometheus-cpp"]
+	path = deps/prometheus-cpp
+	url = https://github.com/jupp0r/prometheus-cpp.git
+[submodule "deps/better-enums"]
+	path = deps/better-enums
+	url = https://github.com/aantron/better-enums.git
